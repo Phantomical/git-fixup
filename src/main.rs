@@ -39,4 +39,6 @@ fn main() {
     eprintln!("git error: {}", e);
     std::process::exit(1);
   }
+
+  if true {}
 }
