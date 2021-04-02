@@ -23,6 +23,7 @@ fn find_dependencies_with_parent<'repo>(
   let mut options = git2::DiffOptions::new();
   options.include_unmodified(true);
   options.indent_heuristic(true);
+  options.context_lines(1);
   let mut diff = repo.diff_tree_to_tree(
     Some(&parent.tree()?),
     Some(&dependent.tree()?),
