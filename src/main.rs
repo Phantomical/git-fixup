@@ -32,7 +32,8 @@ fn main() {
       Arg::with_name("commit")
         .required(true)
         .index(1)
-        .multiple(true),
+        .multiple(true)
+        .help("Commits for which to look up the dependencies for"),
     )
     .arg(
       Arg::with_name("debug")
@@ -45,7 +46,7 @@ fn main() {
 
   if matches.is_present("debug") {
     simple_log::console("debug")
-      .expect("Faield to intialize logging framework");
+      .expect("Failed to intialize logging framework");
   }
 
   let res = _main(matches.values_of("commit").unwrap().into_iter().collect());

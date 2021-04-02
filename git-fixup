@@ -1,0 +1,52 @@
+#!/bin/bash
+
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+EARLIEST=$(git log master..$BRANCH --oneline --reversed --ancestry-path | head -n 1 | cut -d ' ' -f 1)
+LATEST=HEAD
+
+function stderr {
+  echo "$@" >&2
+}
+
+if [[ -z "$EARLIEST" ]]; then
+  stderr "No commits within branch. Refusing to fixup earlier commits"
+  exit 1
+fi
+
+if git diff --cached --quiet; then
+  stderr "No staged changes"
+  exit 1
+fi
+
+git commit -m "git-fixup temporary commit" --quiet
+if $?; then
+  stderr "Failed to commit to index"
+  exit 1
+fi
+
+deps=()
+for dep in $(git deps $LATEST); do
+  if ! git merge-base --is-ancestor $EARLIEST $dep; then
+    deps+=( $dep )
+  fi
+done
+
+ndeps=${#deps[@]}
+if [ $ndeps == 0 ]; then
+  stderr "Index does not depend on any commit"
+  git reset --soft 'HEAD^'
+elif [ $ndeps != 1 ]; then  
+  stderr "Index depends on multiple commits:"
+  for d in $deps; do
+    git log -n 1 --oneline $d
+  done
+  git reset --soft 'HEAD^'
+else
+  echo "Amending commit:"
+  git log -n 1 --oneline ${deps[1]}
+  echo "Creating fixup commit: "
+  git commit --amend --fixup=${deps[1]} --quiet
+  git log -n 1 --oneline ${deps[1]}
+fi
+
+
