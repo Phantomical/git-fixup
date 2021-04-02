@@ -53,16 +53,20 @@ fn find_dependencies_with_parent<'repo>(
           options.track_copies_same_commit_copies(true);
           options.track_copies_same_commit_moves(true);
           options.track_copies_same_file(true);
+          options.newest_commit(parent.id());
           let blame = repo.blame_file(path, Some(&mut options))?;
           blames.entry(path.to_owned()).or_insert(blame)
         }
       };
 
-      for line in hunk.new_start()..hunk.new_start() + hunk.new_lines() {
+      for line in hunk.old_start()..hunk.old_start() + hunk.old_lines() {
         let bhunk = match blame.get_line(line as _) {
           Some(hunk) => hunk,
           None => continue,
         };
+
+        debug!("Scanning line {} of {}", line, path.display());
+        debug!("Found dep: {}", bhunk.final_commit_id());
 
         deps.insert(bhunk.final_commit_id());
       }

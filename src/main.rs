@@ -1,6 +1,9 @@
 use clap::Arg;
 use git2::Repository;
 
+#[macro_use]
+extern crate log;
+
 mod detector;
 
 type GitResult<T> = Result<T, git2::Error>;
@@ -31,7 +34,19 @@ fn main() {
         .index(1)
         .multiple(true),
     )
+    .arg(
+      Arg::with_name("debug")
+        .short("d")
+        .long("debug")
+        .takes_value(false)
+        .help("Enable debug logging"),
+    )
     .get_matches();
+
+  if matches.is_present("debug") {
+    simple_log::console("debug")
+      .expect("Faield to intialize logging framework");
+  }
 
   let res = _main(matches.values_of("commit").unwrap().into_iter().collect());
 
@@ -39,6 +54,4 @@ fn main() {
     eprintln!("git error: {}", e);
     std::process::exit(1);
   }
-
-  if true {}
 }
