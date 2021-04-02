@@ -1,6 +1,6 @@
+use crate::GitResult;
 use git2::{Commit, DiffDelta, DiffHunk, Oid, Repository};
 use std::collections::{HashMap, HashSet};
-use crate::GitResult;
 
 pub fn commit_dependencies<'repo>(
   repo: &'repo Repository,
