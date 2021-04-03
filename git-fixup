@@ -1,7 +1,16 @@
 #!/bin/bash
 
+DEBUG=${DEBUG:-0}
+
+LOGFLAGS="--reverse --ancestry-path --no-abbrev-commit --pretty=oneline"
+DEPFLAGS=""
+
+if [ $DEBUG -ne 0 ]; then
+  DEPFLAGS="-d"
+fi
+
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
-EARLIEST=$(git log master..$BRANCH --oneline --reverse --ancestry-path | head -n 1 | cut -d ' ' -f 1)
+EARLIEST=$(git log master..$BRANCH $LOGFLAGS | head -n 1 | cut -d ' ' -f 1)
 LATEST=HEAD
 
 function stderr {
@@ -26,8 +35,10 @@ if [ $? -ne 0 ]; then
 fi
 
 deps=()
-for dep in $(git deps $LATEST); do
+for dep in $(git deps $DEPFLAGS $LATEST); do
   if ! git merge-base --is-ancestor $dep $EARLIEST; then
+    deps+=( $dep )
+  elif [ $dep == $EARLIEST ]; then
     deps+=( $dep )
   fi
 done
