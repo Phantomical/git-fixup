@@ -9,12 +9,13 @@ function stderr {
 }
 
 if [[ -z "$EARLIEST" ]]; then
-  stderr "No commits within branch. Refusing to fixup earlier commits"
+  stderr "No commits within branch. Refusing to fixup commits within master branch."
   exit 1
 fi
 
 if git diff --cached --quiet; then
-  stderr "No staged changes"
+  stderr "No staged changes."
+  stderr "help: You need to stage some changes with `git add` first."
   exit 1
 fi
 
@@ -33,7 +34,8 @@ done
 
 ndeps=${#deps[@]}
 if [ $ndeps == 0 ]; then
-  stderr "Index does not depend on any commit"
+  stderr "Index does not depend on any commit."
+  stderr "Are you trying to amend a commit before the current branch?"
   git reset --soft 'HEAD^'
 elif [ $ndeps != 1 ]; then  
   stderr "Index depends on multiple commits:"
@@ -44,5 +46,3 @@ elif [ $ndeps != 1 ]; then
 else
   git commit --amend "--fixup=${deps}"
 fi
-
-
