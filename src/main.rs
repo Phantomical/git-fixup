@@ -13,6 +13,9 @@ fn _main(commit_ids: Vec<&str>) -> GitResult<()> {
 
   for id in commit_ids {
     let rev = repo.revparse_single(id)?;
+
+    debug!("Finding deps for {}", rev.id());
+
     let commit = repo.find_commit(rev.id())?;
     let deps = detector::commit_dependencies(&repo, &commit)?;
 
@@ -45,8 +48,7 @@ fn main() {
     .get_matches();
 
   if matches.is_present("debug") {
-    simple_log::console("debug")
-      .expect("Failed to intialize logging framework");
+    simple_logging::log_to_stderr(log::LevelFilter::Debug);
   }
 
   let res = _main(matches.values_of("commit").unwrap().into_iter().collect());
