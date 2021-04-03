@@ -1,7 +1,7 @@
 #!/bin/bash
 
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
-EARLIEST=$(git log master..$BRANCH --oneline --reversed --ancestry-path | head -n 1 | cut -d ' ' -f 1)
+EARLIEST=$(git log master..$BRANCH --oneline --reverse --ancestry-path | head -n 1 | cut -d ' ' -f 1)
 LATEST=HEAD
 
 function stderr {
@@ -19,14 +19,14 @@ if git diff --cached --quiet; then
 fi
 
 git commit -m "git-fixup temporary commit" --quiet
-if $?; then
+if [ $? -ne 0 ]; then
   stderr "Failed to commit to index"
   exit 1
 fi
 
 deps=()
 for dep in $(git deps $LATEST); do
-  if ! git merge-base --is-ancestor $EARLIEST $dep; then
+  if ! git merge-base --is-ancestor $dep $EARLIEST; then
     deps+=( $dep )
   fi
 done
@@ -42,11 +42,7 @@ elif [ $ndeps != 1 ]; then
   done
   git reset --soft 'HEAD^'
 else
-  echo "Amending commit:"
-  git log -n 1 --oneline ${deps[1]}
-  echo "Creating fixup commit: "
-  git commit --amend --fixup=${deps[1]} --quiet
-  git log -n 1 --oneline ${deps[1]}
+  git commit --amend "--fixup=${deps}"
 fi
 
 
