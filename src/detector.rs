@@ -1,15 +1,33 @@
-use crate::GitResult;
+use crate::{GitResult, Options};
 use git2::{Commit, DiffDelta, DiffHunk, Oid, Repository};
 use std::collections::{HashMap, HashSet};
 
 pub fn commit_dependencies<'repo>(
   repo: &'repo Repository,
   commit: &Commit<'repo>,
+  seen: &mut HashSet<Oid>,
+  options: &Options,
 ) -> GitResult<Vec<Oid>> {
   let mut deps = vec![];
+  let mut stack: Vec<_> = commit.parents().collect();
 
-  for parent in commit.parents() {
-    deps.append(&mut find_dependencies_with_parent(repo, &commit, &parent)?);
+  while let Some(parent) = stack.pop() {
+    let found = find_dependencies_with_parent(repo, &commit, &parent)?;
+
+    for oid in found {
+      if seen.contains(&oid) {
+        continue;
+      }
+
+      seen.insert(oid);
+      let commit = repo.find_commit(oid)?;
+
+      if options.ignore_fixups && commit.message_bytes().starts_with(b"fixup! ") {
+        stack.push(commit);
+      } else {
+        deps.push(oid);
+      }
+    }
   }
 
   Ok(deps)

@@ -35,7 +35,7 @@ if [ $? -ne 0 ]; then
 fi
 
 deps=()
-for dep in $(git deps $DEPFLAGS $LATEST); do
+for dep in $(git deps --ignore-fixups $DEPFLAGS $LATEST); do
   if ! git merge-base --is-ancestor $dep $EARLIEST; then
     deps+=( $dep )
   elif [ $dep == $EARLIEST ]; then
