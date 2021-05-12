@@ -1,0 +1,4 @@
+#!/bin/bash
+
+GIT_SEQUENCE_EDITOR=true git rebase -i --autosquash "$@"
+
