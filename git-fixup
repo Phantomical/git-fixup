@@ -50,7 +50,7 @@ if [ $ndeps == 0 ]; then
   git reset --soft 'HEAD^'
 elif [ $ndeps != 1 ]; then  
   stderr "Index depends on multiple commits:"
-  for d in $deps; do
+  for d in "${deps[@]}"; do
     git log -n 1 --oneline $d
   done
   git reset --soft 'HEAD^'
